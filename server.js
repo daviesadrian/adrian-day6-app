@@ -6,9 +6,9 @@ const pubsub = new PubSub({ projectId: 'cloud-portfolio-789' });
 const topic = pubsub.topic('orders');
 
 const pool = new Pool({
-  user: 'postgres',
-  password: 'postgres123',
-  host: '10.10.0.3',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '',
+  host: 'localhost',
   database: 'postgres',
   port: 5432,
 });

@@ -13,4 +13,4 @@ COPY . .
 EXPOSE 8080
 
 # Start proxy + appropriate service (app or worker) based on WORKER_MODE env var
-CMD ["/bin/sh", "-c", "/cloud-sql-proxy cloud-portfolio-789:us-central1:training-db & if [ \"$WORKER_MODE\" = \"true\" ]; then npm run start:worker; else npm run start:app; fi"]
+CMD ["/bin/sh", "-c", "/cloud-sql-proxy -instances=cloud-portfolio-789:us-central1:training-db=tcp:5432 & if [ \"$WORKER_MODE\" = \"true\" ]; then npm run start:worker; else npm run start:app; fi"]

@@ -1,5 +1,12 @@
+const express = require('express');
 const { PubSub } = require('@google-cloud/pubsub');
 const { Pool } = require('pg');
+
+const app = express();
+app.get('/', (req, res) => {
+  res.json({ status: 'healthy' });
+});
+app.listen(8080, () => console.log('Health check on port 8080'));
 
 const pubsub = new PubSub({ projectId: 'cloud-portfolio-789' });
 const subscription = pubsub.subscription('orders-worker');

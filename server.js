@@ -1,5 +1,9 @@
 const express = require('express');
+const { PubSub } = require('@google-cloud/pubsub');
 const { Pool } = require('pg');
+
+const pubsub = new PubSub({ projectId: 'cloud-portfolio-789' });
+const topic = pubsub.topic('orders');
 
 const pool = new Pool({
   user: 'postgres',
@@ -8,14 +12,6 @@ const pool = new Pool({
   database: 'postgres',
   port: 5432,
 });
-
-pool.query(`
-  CREATE TABLE IF NOT EXISTS messages (
-    id SERIAL PRIMARY KEY,
-    text TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-  );
-`).catch(err => console.log('Table setup:', err.message));
 
 const app = express();
 app.use(express.json());
@@ -32,8 +28,12 @@ app.get('/messages', async (req, res) => {
 app.post('/messages', async (req, res) => {
   try {
     const { text } = req.body;
-    const result = await pool.query('INSERT INTO messages (text) VALUES ($1) RETURNING *', [text]);
-    res.json(result.rows[0]);
+    const messageId = await topic.publish(Buffer.from(JSON.stringify({ text, timestamp: new Date() })));
+    res.json({ 
+      id: messageId, 
+      text: text, 
+      status: 'queued - processing in background' 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

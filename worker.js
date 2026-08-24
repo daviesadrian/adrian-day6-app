@@ -20,14 +20,31 @@ const pool = new Pool({
 });
 
 subscription.on('message', async (message) => {
+  const start = Date.now();
   try {
     const data = JSON.parse(message.data.toString());
     await pool.query('INSERT INTO messages (text) VALUES ($1)', [data.text]);
     message.ack();
-    console.log(`Processed: ${data.text}`);
+
+    const latency = Date.now() - start;
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'INFO',
+      message_id: message.id,
+      text: data.text,
+      status: 'processed',
+      latency_ms: latency
+    }));
   } catch (err) {
     message.nack();
-    console.error(`Error: ${err.message}`);
+    const latency = Date.now() - start;
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'ERROR',
+      message_id: message.id,
+      error: err.message,
+      latency_ms: latency
+    }));
   }
 });
 

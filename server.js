@@ -16,6 +16,26 @@ const pool = new Pool({
 const app = express();
 app.use(express.json());
 
+// Structured logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on('finish', () => {
+    const latency = Date.now() - start;
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: res.statusCode >= 400 ? 'ERROR' : 'INFO',
+      method: req.method,
+      path: req.path,
+      status: res.statusCode,
+      latency_ms: latency,
+      message: `${req.method} ${req.path}`
+    }));
+  });
+
+  next();
+});
+
 app.get('/messages', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM messages ORDER BY created_at DESC');

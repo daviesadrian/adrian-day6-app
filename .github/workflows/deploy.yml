@@ -22,35 +22,22 @@ jobs:
         with:
           project_id: cloud-portfolio-789
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
       - name: Build Docker image
         run: |
           gcloud builds submit \
             --tag gcr.io/cloud-portfolio-789/adrian-day6-app \
             --project cloud-portfolio-789 || true
-
-      - name: Deploy app to Cloud Run (with Workload Identity)
-        run: |
-          gcloud run deploy adrian-day6-app \
-            --image=gcr.io/cloud-portfolio-789/adrian-day6-app \
-            --platform=managed \
-            --region=us-central1 \
-            --vpc-connector=training-vpc-connector \
-            --allow-unauthenticated \
-            --memory=256Mi \
-            --timeout=60s \
-            --service-account=adrian-day6-app@cloud-portfolio-789.iam.gserviceaccount.com \
-            --project=cloud-portfolio-789
-
-      - name: Deploy worker to Cloud Run (with Workload Identity)
-        run: |
-          gcloud run deploy adrian-day6-worker \
-            --image=gcr.io/cloud-portfolio-789/adrian-day6-app \
-            --platform=managed \
-            --region=us-central1 \
-            --vpc-connector=training-vpc-connector \
-            --no-allow-unauthenticated \
-            --memory=256Mi \
-            --timeout=3600s \
-            --service-account=adrian-day6-worker@cloud-portfolio-789.iam.gserviceaccount.com \
-            --set-env-vars=WORKER_MODE=true \
-            --project=cloud-portfolio-789

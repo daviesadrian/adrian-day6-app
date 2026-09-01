@@ -22,6 +22,12 @@ jobs:
         with:
           project_id: cloud-portfolio-789
 
+      - name: Build Docker image
+        run: |
+          gcloud builds submit \
+            --tag gcr.io/cloud-portfolio-789/adrian-day6-app \
+            --project cloud-portfolio-789 || true
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -35,9 +41,3 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-
-      - name: Build Docker image
-        run: |
-          gcloud builds submit \
-            --tag gcr.io/cloud-portfolio-789/adrian-day6-app \
-            --project cloud-portfolio-789 || true
